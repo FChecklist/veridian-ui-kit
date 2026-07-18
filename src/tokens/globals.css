@@ -1,0 +1,64 @@
+/*
+ * VERIDIAN AI OS design tokens -- ported verbatim from
+ * compliance-tracker/veridian-scope-selector-in-home.html (the Owner's
+ * agreed UI/UX reference, 2026-07-18). Every consuming product (VERIDIAN AI
+ * OS, PROJEXA, and any future FChecklist product) imports this file
+ * unchanged into its own globals.css via:
+ *
+ *   @import "@fchecklist/veridian-ui-kit/tokens/globals.css";
+ *
+ * Do NOT fork or re-value these tokens per-product -- that's exactly the
+ * drift (PROJEXA's now-retired `px-*` "construction/blueprint" palette,
+ * "deliberately distinct from VERIDIAN's navy/saffron/teal") this package
+ * exists to end. If a product genuinely needs one more semantic color,
+ * add it here so every product gets it, don't shadow it locally.
+ */
+@theme inline {
+  --color-ct-cream: #FFFDF9;
+  --color-ct-navy: #1C2B3A;
+  --color-ct-navy2: #2D3F52;
+  --color-ct-navy3: #3D5269;
+  --color-ct-saffron: #F5820A;
+  --color-ct-saffron-hover: #E0730A;
+  --color-ct-teal: #0E7C6E;
+  --color-ct-cloud: #F0F4F8;
+  --color-ct-cloud2: #E8EEF5;
+  --color-ct-slate: #4A5568;
+  --color-ct-muted: #718096;
+  --color-ct-border: #E2E8F0;
+  --color-ct-border2: #CBD5E1;
+  --color-scope-tint: #F4EFE2;
+  --color-scope-tint-border: #E6DEC9;
+
+  --font-heading: var(--veridian-font-heading, "DM Serif Display"), Georgia, serif;
+  --font-sans: var(--veridian-font-sans, "Inter"), system-ui, sans-serif;
+}
+
+html, body {
+  background: var(--color-ct-cream);
+}
+
+/* Chain-selector chip primitives (rchip = single-select row, mchip =
+   multi-select row) -- shared exactly as the mockup defines them so every
+   product's ChainSelector renders identically, pixel for pixel. */
+.veri-rchip { display: inline-flex; align-items: center; border: 1px solid var(--color-ct-border2); border-radius: 999px; padding: 3px 11px; cursor: pointer; background: #fff; user-select: none; font-size: 12px; color: var(--color-ct-navy); }
+.veri-rchip.checked { background: var(--color-ct-navy); border-color: var(--color-ct-navy); color: #fff; }
+.veri-rchip.leaf.checked { background: var(--color-ct-teal); border-color: var(--color-ct-teal); }
+.veri-mchip { display: flex; align-items: center; gap: 5px; border: 1px solid var(--color-ct-border2); border-radius: 999px; padding: 2px 9px 2px 6px; cursor: pointer; background: #fff; user-select: none; }
+.veri-mchip input { margin: 0; width: 12px; height: 12px; cursor: pointer; accent-color: var(--color-ct-teal); }
+.veri-mchip span { font-size: 12px; color: var(--color-ct-navy); }
+.veri-mchip.checked { background: var(--color-ct-teal); border-color: var(--color-ct-teal); }
+.veri-mchip.checked span { color: #fff; }
+.veri-qchip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--color-ct-border2); border-radius: 999px; padding: 3px 6px 3px 11px; background: #fff; font-size: 11.5px; color: var(--color-ct-navy); }
+
+.veri-mode-pill { font-size: 12px; font-weight: 500; padding: 5px 11px; border-radius: 999px; color: var(--color-ct-muted); white-space: nowrap; cursor: pointer; border: none; background: transparent; }
+.veri-mode-pill.active { background: #fff; color: var(--color-ct-navy); box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+.veri-view-tab { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; padding: 5px 10px; border-radius: 7px; color: var(--color-ct-muted); cursor: pointer; border: 1px solid transparent; background: transparent; }
+.veri-view-tab:hover { background: var(--color-ct-cloud); }
+.veri-view-tab.active { background: #FDECD8; color: #8A4A06; border-color: #F5D9B4; }
+.veri-view-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 15px; height: 15px; padding: 0 3px; border-radius: 999px; background: #E24B4A; color: #fff; font-size: 9.5px; font-weight: 700; }
+.veri-nav-item { display: flex; align-items: center; gap: 8px; border-radius: 8px; padding: 8px 12px; color: var(--color-ct-slate); font-size: 14px; cursor: pointer; }
+.veri-nav-item:hover { background: var(--color-ct-cloud); }
+.veri-nav-item.active { background: var(--color-ct-navy); color: #fff; }
+.veri-composer-disabled { background: var(--color-ct-cloud) !important; }
+.veri-composer-disabled textarea { color: var(--color-ct-border2) !important; cursor: not-allowed; }
