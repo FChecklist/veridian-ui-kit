@@ -39,10 +39,18 @@ export function AppSidebar({ sections, logo, productName = "VERIDIAN AI", collap
               {section.label && (
                 <p className="px-3 mb-1 mt-4 text-[9px] font-bold tracking-widest text-ct-muted uppercase">{section.label}</p>
               )}
-              {section.items.map((item) => {
+              {section.items.map((item, iIdx) => {
                 const active = pathname === item.href || (item.href !== "/" && pathname?.startsWith(item.href + "/"));
+                // Keyed by href+label+index, not href alone -- a consuming
+                // product's real nav legitimately has multiple distinct
+                // items pointing at the same href (e.g. two different
+                // entry points into the same list page, filtered
+                // differently client-side), confirmed while adopting this
+                // component in compliance-tracker's real migration
+                // (2026-07-19): href-only keys collided and produced a real
+                // React "duplicate key" warning.
                 return (
-                  <Link key={item.href} href={item.href} className={`veri-nav-item${active ? " active" : ""}`}>
+                  <Link key={`${item.href}-${item.label}-${iIdx}`} href={item.href} className={`veri-nav-item${active ? " active" : ""}`}>
                     {item.icon}
                     <span className="flex-1 truncate">{item.label}</span>
                     {item.badge}
