@@ -60,5 +60,7 @@ html, body {
 .veri-nav-item { display: flex; align-items: center; gap: 8px; border-radius: 8px; padding: 8px 12px; color: var(--color-ct-slate); font-size: 14px; cursor: pointer; }
 .veri-nav-item:hover { background: var(--color-ct-cloud); }
 .veri-nav-item.active { background: var(--color-ct-navy); color: #fff; }
+.veri-icon-btn { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 8px; color: var(--color-ct-muted); border: none; background: transparent; cursor: pointer; }
+.veri-icon-btn:hover { background: var(--color-ct-cloud); color: var(--color-ct-slate); }
 .veri-composer-disabled { background: var(--color-ct-cloud) !important; }
 .veri-composer-disabled textarea { color: var(--color-ct-border2) !important; cursor: not-allowed; }

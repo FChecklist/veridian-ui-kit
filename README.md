@@ -51,7 +51,7 @@ Each consuming app's `package.json`:
 - `@fchecklist/veridian-ui-kit/context` — `createVeriChatContext()`, the
   shared two-axis (`composerMode` / `activeView`) state-machine factory.
 - `@fchecklist/veridian-ui-kit/shell` — `AppShellFrame`, `AppSidebar`,
-  `HomeGreeting`.
+  `AppHeader`, `HomeGreeting`.
 - `@fchecklist/veridian-ui-kit/composer` — `VeriComposer`, `ChainRows` and
   its path-display helpers.
 - `@fchecklist/veridian-ui-kit/panel` — `PanelShell`, `OverviewList`,
