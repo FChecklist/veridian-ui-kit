@@ -1,8 +1,8 @@
 {
   "name": "@fchecklist/veridian-ui-kit",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "private": true,
-  "description": "Shared VERIDIAN AI OS UI/UX shell (design tokens, AppShell, VeriComposer, VeriChatPanel, VeriChat context) consumed by VERIDIAN AI OS, PROJEXA, and future FChecklist products.",
+  "description": "Shared VERIDIAN AI OS UI/UX shell (design tokens, AppShell, VeriComposer, VeriChatPanel, VeriChat context) + the server-safe cross-repo prompt-pattern module, consumed by VERIDIAN AI OS, PROJEXA, and future FChecklist products.",
   "license": "UNLICENSED",
   "type": "module",
   "exports": {
@@ -12,7 +12,8 @@
     "./shell": "./src/shell/index.ts",
     "./composer": "./src/composer/index.ts",
     "./panel": "./src/panel/index.ts",
-    "./context": "./src/context/index.ts"
+    "./context": "./src/context/index.ts",
+    "./prompt-patterns": "./src/prompt-patterns/index.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"

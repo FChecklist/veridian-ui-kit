@@ -56,6 +56,16 @@ Each consuming app's `package.json`:
   its path-display helpers.
 - `@fchecklist/veridian-ui-kit/panel` — `PanelShell`, `OverviewList`,
   `TaskList`, `ChatList`, `TodoList`, `ThreadView`.
+- `@fchecklist/veridian-ui-kit/prompt-patterns` — **server-side only.** The
+  shared cross-repo LLM call-pattern module (SUPERBOSS v2, TASK
+  V2-4-SHARED-PROMPT-PATTERNS). `runPromptPattern()` owns the canonical
+  6-step sequence (resolve-model → resolve-prompt → enforce-policy →
+  call-LLM → record-execution) every real call site should follow, plus a
+  versioned catalog of named patterns; a consuming repo injects its own
+  repo-specific steps via `PromptPatternHooks` (it never imports a
+  consumer's db/tenant code, which is what makes it shareable). Has zero
+  UI/DOM/React deps and must never acquire any — see `src/prompt-patterns/types.ts`
+  for the scope rationale.
 
 ## Adoption recipe
 
