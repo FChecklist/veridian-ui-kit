@@ -30,9 +30,12 @@
   "devDependencies": {
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "next": "^16.2.10",
+    "next": "16.2.12",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "typescript": "^5"
+  },
+  "overrides": {
+    "postcss": "^8.5.23"
   }
 }
