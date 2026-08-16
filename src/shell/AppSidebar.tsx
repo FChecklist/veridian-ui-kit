@@ -8,19 +8,44 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
+import { MessageSquare } from "lucide-react";
 import { useResizableWidth } from "./useResizable";
 
 export type NavItem = { href: string; label: string; icon?: ReactNode; badge?: ReactNode };
 export type NavSection = { label?: string; items: NavItem[] };
+
+export type MiddleColumnToggle = {
+  /** Whether the middle assistant column is currently hidden. */
+  collapsed: boolean;
+  onToggle: () => void;
+  /** Human-readable name for the thing being shown/hidden (e.g. PROJEXA's "VERI Chat"). Defaults to "assistant". Used to build the title/aria-label: "Show {label}" / "Hide {label}". */
+  label?: string;
+};
 
 export type AppSidebarProps = {
   sections: NavSection[];
   logo?: ReactNode;
   productName?: string;
   collapsed: boolean;
+  /**
+   * Optional control for showing/hiding the middle assistant column.
+   * Rendered as a rail button structurally INSIDE this left column, pinned
+   * below the nav list (`shrink-0`, outside the scrollable `<nav>`) so it
+   * stays visible and clickable without scrolling even at the rail's
+   * ~10%-of-viewport width. Owner directive 2026-08-16: a column toggle
+   * must live in the column it's structurally part of -- previously this
+   * sat in the full-width header, which has no per-column ownership.
+   * Uses a chat-bubble icon (identity-based: "this is the assistant
+   * toggle") rather than a directional panel icon, so it can't go stale
+   * again if the assistant column's screen position changes later the way
+   * `PanelRight` did when the assistant moved from the right strip to the
+   * middle column. Omit on routes where there's no middle column to
+   * toggle (e.g. AppShellFrame's homeRoute merge).
+   */
+  middleColumnToggle?: MiddleColumnToggle;
 };
 
-export function AppSidebar({ sections, logo, productName = "VERIDIAN AI", collapsed }: AppSidebarProps) {
+export function AppSidebar({ sections, logo, productName = "VERIDIAN AI", collapsed, middleColumnToggle }: AppSidebarProps) {
   const pathname = usePathname();
   // Real 3-screen proportion (Owner directive): sidebar ~10% / main ~50% /
   // right panel ~40% of the viewport. Existing 140-320px bounds unchanged --
@@ -29,6 +54,9 @@ export function AppSidebar({ sections, logo, productName = "VERIDIAN AI", collap
   const { width, onHandleMouseDown } = useResizableWidth(220, 140, 320, "left", () => Math.round(window.innerWidth * 0.1));
 
   if (collapsed) return null;
+
+  const toggleLabel = middleColumnToggle?.label ?? "assistant";
+  const toggleTitle = middleColumnToggle ? (middleColumnToggle.collapsed ? `Show ${toggleLabel}` : `Hide ${toggleLabel}`) : undefined;
 
   return (
     <>
@@ -64,6 +92,20 @@ export function AppSidebar({ sections, logo, productName = "VERIDIAN AI", collap
             </div>
           ))}
         </nav>
+        {middleColumnToggle && (
+          <div className="shrink-0 border-t border-ct-border px-2.5 py-2">
+            <button
+              type="button"
+              onClick={middleColumnToggle.onToggle}
+              title={toggleTitle}
+              aria-label={toggleTitle}
+              aria-pressed={!middleColumnToggle.collapsed}
+              className="veri-icon-btn"
+            >
+              <MessageSquare className="size-[17px]" />
+            </button>
+          </div>
+        )}
       </aside>
       <div onMouseDown={onHandleMouseDown} className="w-[5px] cursor-col-resize shrink-0 hover:bg-ct-saffron/25" />
     </>
