@@ -95,11 +95,15 @@ export function AppShellFrame({ sidebar, composer, panel, homeThreadSlot, homeRo
         <div className="flex flex-1 flex-col overflow-hidden">
           <div className="flex flex-1 overflow-hidden">
             {/* Middle: the assistant -- wide, flexible, primary surface.
-                `panel` manages its own internal scrolling (see
+                This wrapping div's own `overflow-y-auto` predates this fix
+                and stays for the isHome branch (`children`+`homeThreadSlot`
+                are raw content that need it); on the non-home branch below,
+                `panel` manages its own internal scrolling instead (see
                 ../panel/PanelShell.tsx's own `h-full` + `overflow-y-auto`
-                body), so this wrapping div deliberately does not add a
-                second overflow-y-auto of its own. `composer` is a direct
-                flex sibling AFTER it, pinned to the bottom of this column
+                body), so this wrapper's overflow-y-auto is simply inert
+                there (panel is always exactly this wrapper's height, so it
+                never has anything to scroll). `composer` is a direct flex
+                sibling AFTER this div, pinned to the bottom of this column
                 by flexbox (not appended to `children`/module content), so
                 it stays visible without scrolling on any route that shows
                 the assistant -- matching a Claude-style anchored composer. */}
