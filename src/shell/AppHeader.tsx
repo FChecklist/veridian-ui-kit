@@ -2,16 +2,30 @@
 
 // The top header bar -- ported from the mockup's `<header>` block exactly
 // (sidebar-toggle, logo+brand reusing AppSidebar's own convention, search,
-// notification bell, right-panel-toggle, org/context label, user avatar).
-// Same generic-layout-plus-callback-props pattern as AppSidebar.tsx: this
-// owns the icon row's layout/spacing/styling only. Every data-bearing piece
-// -- the real search trigger, the real notification list (VERIDIAN's own
+// notification bell, org/context label, user avatar). Same generic-
+// layout-plus-callback-props pattern as AppSidebar.tsx: this owns the icon
+// row's layout/spacing/styling only. Every data-bearing piece -- the real
+// search trigger, the real notification list (VERIDIAN's own
 // `/api/notifications` dropdown), the real user menu (settings/logout), and
 // any org-specific extras (VERIDIAN's "invite a team member" button) --
 // stays owned by whichever product supplies it via slots, ported from
 // VERIDIAN AI OS's real AppTopbar.tsx (compliance-tracker).
+//
+// Column toggle removed 2026-08-16 (Owner directive, follow-up to the same
+// day's 3-column arrangement fix): this header used to render a
+// `PanelRight`-icon "Toggle VERI Chat panel" button (`onToggleRightPanel`)
+// here. That button toggled the assistant column, which is a real defect
+// in two ways once this header spans the full app width above all three
+// columns: (1) the header has no per-column ownership, so a column-scoped
+// control here reads as if it toggles something app-wide; (2) the icon and
+// label both described a right-hand strip, which was already stale after
+// the arrangement fix moved the assistant to the middle column. The
+// control now lives in `AppSidebar`'s `middleColumnToggle` prop, rendered
+// structurally inside the LEFT column it's supposed to be part of, with an
+// icon/label that describe the assistant by identity (chat) instead of by
+// screen position.
 import type { ReactNode } from "react";
-import { PanelLeft, PanelRight, Search, Bell } from "lucide-react";
+import { PanelLeft, Search, Bell } from "lucide-react";
 
 export type AppHeaderProps = {
   logo?: ReactNode;
@@ -20,7 +34,6 @@ export type AppHeaderProps = {
   sidebarCollapsed?: boolean;
   /** The real search trigger (e.g. VERIDIAN's `<SearchTrigger />`) -- rendered in place of the mockup's plain search icon button. Omit to hide it entirely. */
   searchSlot?: ReactNode;
-  onToggleRightPanel?: () => void;
   /** Org name / project name / other product-specific context label shown next to the user avatar (e.g. VERIDIAN's `orgName`). */
   contextLabel?: ReactNode;
   /** The whole bell icon + dropdown, product owns the notification data. Omit to hide it entirely. */
@@ -37,7 +50,6 @@ export function AppHeader({
   onToggleSidebar,
   sidebarCollapsed,
   searchSlot,
-  onToggleRightPanel,
   contextLabel,
   notificationSlot,
   userMenuSlot,
@@ -70,16 +82,6 @@ export function AppHeader({
         {notificationSlot ?? (
           <button type="button" title="Notifications" className="veri-icon-btn">
             <Bell className="size-4" />
-          </button>
-        )}
-        {onToggleRightPanel && (
-          <button
-            type="button"
-            onClick={onToggleRightPanel}
-            title="Toggle VERI Chat panel"
-            className="veri-icon-btn"
-          >
-            <PanelRight className="size-[17px]" />
           </button>
         )}
         {extraActions}
