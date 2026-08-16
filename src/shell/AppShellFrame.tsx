@@ -51,7 +51,12 @@ export type AppShellFrameProps = {
 export function AppShellFrame({ sidebar, composer, panel, homeThreadSlot, homeRoute, children, header }: AppShellFrameProps) {
   const pathname = usePathname();
   const isHome = pathname === homeRoute;
-  const { width: panelWidth, onHandleMouseDown } = useResizableWidth(420, 320, 640, "right");
+  // Real 3-screen proportion (Owner directive): sidebar ~10% / main ~50% /
+  // this panel ~40% of the viewport. Existing 320-640px bounds unchanged --
+  // only the starting/default width now targets a true percentage instead
+  // of a fixed 420px guess. Min/max still win on very narrow or very wide
+  // screens, same as before this change.
+  const { width: panelWidth, onHandleMouseDown } = useResizableWidth(420, 320, 640, "right", () => Math.round(window.innerWidth * 0.4));
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-ct-cream">

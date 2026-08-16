@@ -22,7 +22,11 @@ export type AppSidebarProps = {
 
 export function AppSidebar({ sections, logo, productName = "VERIDIAN AI", collapsed }: AppSidebarProps) {
   const pathname = usePathname();
-  const { width, onHandleMouseDown } = useResizableWidth(220, 140, 320, "left");
+  // Real 3-screen proportion (Owner directive): sidebar ~10% / main ~50% /
+  // right panel ~40% of the viewport. Existing 140-320px bounds unchanged --
+  // only the starting/default width now targets a true percentage instead
+  // of a fixed 220px guess.
+  const { width, onHandleMouseDown } = useResizableWidth(220, 140, 320, "left", () => Math.round(window.innerWidth * 0.1));
 
   if (collapsed) return null;
 

@@ -9,9 +9,37 @@
 // surface to break on.
 import { useCallback, useEffect, useRef, useState } from "react";
 
-export function useResizableWidth(initial: number, min: number, max: number, direction: "left" | "right") {
+export function useResizableWidth(
+  initial: number,
+  min: number,
+  max: number,
+  direction: "left" | "right",
+  // Optional: computes a real, viewport-relative default (e.g. a % of
+  // window.innerWidth for a genuine 3-screen proportion) applied once after
+  // mount. Deliberately NOT read during the initial useState() call --
+  // window is unavailable during SSR, and using it there would cause a
+  // React hydration mismatch (server renders `initial`, client would render
+  // something else on the same pass). Running it in an effect instead means
+  // the first paint always matches SSR (using `initial`), then updates a
+  // frame later on the client only -- same pattern React itself recommends
+  // for any browser-only computed value. Fully backward compatible: every
+  // existing call site that omits this argument behaves identically to
+  // before this parameter existed.
+  getResponsiveInitial?: () => number
+) {
   const [width, setWidth] = useState(initial);
   const dragState = useRef<{ dragging: boolean; startX: number; startWidth: number } | null>(null);
+
+  useEffect(() => {
+    if (!getResponsiveInitial) return;
+    const responsive = getResponsiveInitial();
+    setWidth(Math.max(min, Math.min(max, responsive)));
+    // Only ever applied once, on mount -- this sets the real starting
+    // proportion, it does not keep re-syncing on every window resize (that
+    // would fight a user's own manual drag-resize, which is real,
+    // unchanged, pre-existing behavior this hook must not disturb).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const onHandleMouseDown = useCallback(
     (e: React.MouseEvent) => {
