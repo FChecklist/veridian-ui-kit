@@ -60,12 +60,27 @@ export function AppSidebar({ sections, logo, productName = "VERIDIAN AI", collap
 
   return (
     <>
-      <aside style={{ width }} className="shrink-0 border-r border-ct-border bg-white flex flex-col overflow-y-auto">
-        <div className="flex items-center gap-2 px-3 pt-3.5 pb-2">
+      <aside style={{ width }} className="shrink-0 h-full border-r border-ct-border bg-white flex flex-col overflow-hidden">
+        <div className="shrink-0 flex items-center gap-2 px-3 pt-3.5 pb-2">
           {logo ?? <div className="grid size-7 place-items-center rounded-lg bg-ct-navy text-white text-xs font-bold">{productName.charAt(0)}</div>}
           <span className="font-heading text-[15px] text-ct-navy tracking-tight truncate">{productName}</span>
         </div>
-        <nav className="flex-1 px-2.5 pb-4">
+        {/* Bugfix (Owner directive 2026-08-17, real production repro):
+            `overflow-y-auto` used to live on the outer `<aside>`, making the
+            logo row + nav list + `middleColumnToggle` below all ONE
+            scrollable region together. On a real nav list long enough to
+            exceed the rail's available height (confirmed live: PROJEXA's
+            real 11-section/34-item nav), that swept the toggle into the
+            same scroll region as the nav, so it scrolled out of view --
+            exactly the opposite of "pinned below the nav list, outside the
+            scrollable nav, always visible without scrolling" this prop's
+            own doc comment (above) already promised. Fix: `overflow-y-auto`
+            + `min-h-0` move onto `<nav>` itself, so ONLY the nav list
+            scrolls internally; the logo row and the toggle row (both
+            already `shrink-0`) stay pinned outside that scroll region, on
+            an `<aside>` that's now explicitly `h-full` + `overflow-hidden`
+            so it can't grow past its real viewport-relative height either. */}
+        <nav className="flex-1 min-h-0 overflow-y-auto px-2.5 pb-4">
           {sections.map((section, sIdx) => (
             <div key={sIdx}>
               {section.label && (
