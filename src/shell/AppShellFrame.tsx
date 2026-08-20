@@ -1,17 +1,22 @@
 "use client";
 
-// The outermost shell: sidebar + assistant (`panel` + `composer`, the wide
-// primary middle surface) + module surface (`children`, the narrower
-// right-hand surface), route-aware. This is the mockup's central "merge"
-// idea, made real in React: on the designated home route, the assistant
-// column (and its resize handle) are hidden and `homeThreadSlot` renders
-// inline alongside `children` in the merged main content area instead; on
-// every other route, the assistant is shown normally in its own column and
-// `homeThreadSlot` is not rendered at all. Both call sites -- `panel` and
-// home-slot -- are expected to render the SAME underlying thread state
-// (via ../panel/ThreadView reading the same shared context), so switching
-// routes never loses or duplicates what the user was looking at.
+// The outermost shell: sidebar + assistant (`panel` + `composer`, the
+// fixed-width LEFT working column) + module surface (`children`, the wide
+// RIGHT traditional-ERP surface). Owner directive 2026-08-20: the
+// two-column split is STANDARD ON EVERY ROUTE -- left is where the end
+// user works, right is where the end user sees reports, analysis,
+// dashboards and every existing ERP screen. The mockup's old "merge on
+// home" idea is DEAD: a permanent working column cannot vanish on one
+// route, and PROJEXA's homeRoute is "/dashboard", so the merge hid the
+// assistant on the single screen a buyer lands on first. `homeThreadSlot`
+// is NOT discarded -- on `homeRoute` it renders IN PLACE OF `panel` inside
+// the left column. Exactly one of `panel` / `homeThreadSlot` renders on
+// any route, so the shared thread state is still never duplicated.
 //
+// HISTORY, NO LONGER THE DESIGN -- the "merge on home" described in this
+// paragraph was removed 2026-08-20. The homeRoute branch survives ONLY to
+// swap `homeThreadSlot` in for `panel` inside the left column. Retained
+// for history only:
 // Ported from VERIDIAN AI OS's real AppShell.tsx pattern (a
 // `pathname === homeRoute` branch already exists there for the
 // OnboardingChecklist banner) generalized into the full merge the mockup
@@ -21,6 +26,14 @@
 // component corrects that drift rather than just preserving today's
 // behavior.
 //
+// SUPERSEDED 2026-08-20 -- DO NOT RESTORE THE ARRANGEMENT DESCRIBED BELOW.
+// The Owner directive that follows was itself replaced: the assistant is
+// now the fixed-width LEFT column and `children` is the wide RIGHT column.
+// The 2026-08-16 complaint (assistant too narrow) and the 2026-08-20
+// complaint (ERP screen cannot be seen properly) are the SAME defect --
+// whichever column sits at ~420px is too small for its contents. Swapping
+// which side is narrow only moves it, so the left column is now
+// drag-resizable 390-700. Retained below for history only:
 // Column arrangement corrected 2026-08-16 (Owner directive, raised from a
 // real production screenshot of PROJEXA's /work-progress, against the
 // authoritative mock `PROJEXA Workspace Layout`,
@@ -46,15 +59,15 @@ import { useResizableWidth } from "./useResizable";
 
 export type AppShellFrameProps = {
   sidebar: ReactNode;
-  /** The persistent composer, anchored directly beneath `panel` in the middle assistant column -- always visible without scrolling past `panel`'s own scrollable content, never appended after `children`/module content. */
+  /** The persistent composer, anchored directly beneath `panel` at the bottom of the LEFT working column -- always visible without scrolling past `panel`'s own scrollable content, never appended after `children`/module content. */
   composer: ReactNode;
-  /** The assistant surface (conversation + mode pill/option selector + task list, e.g. `<PanelShell />`) -- rendered as the WIDE, primary MIDDLE column with `composer` anchored beneath it. Despite the prop name (kept for backward compatibility with existing call sites), this is no longer the narrow right-hand strip. */
+  /** The assistant surface (conversation + mode pill/option selector + task list, e.g. `<PanelShell />`) -- rendered as the fixed-width LEFT working column with `composer` anchored beneath it. Drag-resizable 390-700, defaulting to 430 (390 below a 1050px viewport). */
   panel: ReactNode;
-  /** Rendered ONLY on `homeRoute`, inline within the merged main content area alongside `children`, replacing the assistant column. Typically a greeting + AI-digest card + a `<ThreadView />`. */
+  /** Rendered ONLY on `homeRoute`, IN PLACE OF `panel` inside the LEFT working column -- never alongside `children`. Typically a greeting + AI-digest card + a `<ThreadView />`. Optional: if omitted, `panel` renders on `homeRoute` too, so the left column is never empty. */
   homeThreadSlot?: ReactNode;
-  /** The route this shell treats as "Home" for the merge behavior (e.g. "/home" for VERIDIAN, "/dashboard" for PROJEXA). */
+  /** The route this shell treats as "Home" -- the ONLY route where `homeThreadSlot` replaces `panel` in the left column (e.g. "/home" for VERIDIAN, "/dashboard" for PROJEXA). The old merge-into-one-column behaviour no longer exists. */
   homeRoute: string;
-  /** The routed module/page content (e.g. a Next.js route-group layout's `children`) -- rendered as the narrower, independently-scrollable RIGHT column, except on `homeRoute` where it merges into the main content area alongside `homeThreadSlot` instead (the assistant column is hidden there). */
+  /** The routed module/page content (e.g. a Next.js route-group layout's `children`) -- rendered as the WIDE, independently-scrollable RIGHT column: the traditional ERP surface. Rendered identically on every route, including `homeRoute`. */
   children: ReactNode;
   /** The persistent top bar (e.g. `<AppHeader />`), rendered above the sidebar/assistant/module row. Matches the mockup's own outer structure exactly (`<div class="flex h-screen flex-col overflow-hidden"><header>...<div class="flex flex-1 overflow-hidden">`) -- omit for a header-less consumer, the row below still fills 100% height on its own via flex-1. */
   header?: ReactNode;
@@ -78,14 +91,13 @@ export type AppShellFrameProps = {
 export function AppShellFrame({ sidebar, composer, panel, homeThreadSlot, homeRoute, children, header }: AppShellFrameProps) {
   const pathname = usePathname();
   const isHome = pathname === homeRoute;
-  // Real 3-screen proportion (Owner directive): sidebar ~10% / assistant
-  // ~50% / module surface ~40% of the viewport. Existing 320-640px bounds
-  // unchanged -- only the starting/default width still targets a true
-  // percentage instead of a fixed 420px guess. Min/max still win on very
-  // narrow or very wide screens, same as before this change. This hook now
-  // sizes the MODULE surface (`children`'s column), not the assistant --
-  // see the file header comment for why that's the corrected assignment.
-  const { width: moduleWidth, onHandleMouseDown } = useResizableWidth(420, 320, 640, "right", () => Math.round(window.innerWidth * 0.4));
+  // Two-column split (Owner directive 2026-08-20): LEFT = the assistant /
+  // working column, RIGHT = the traditional ERP surface. This hook now
+  // sizes the ASSISTANT column, which sits LEFT of the handle -- hence
+  // direction "left". Width follows the MOCK1 geometry: 430px, and 390px
+  // below a 1050px viewport. Drag range 390-700 so the user can widen the
+  // working column if it feels cramped at 430.
+  const { width: assistantWidth, onHandleMouseDown } = useResizableWidth(430, 390, 700, "left", () => (window.innerWidth < 1050 ? 390 : 430));
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-ct-cream">
@@ -94,7 +106,7 @@ export function AppShellFrame({ sidebar, composer, panel, homeThreadSlot, homeRo
         {sidebar}
         <div className="flex flex-1 flex-col overflow-hidden">
           <div className="flex flex-1 overflow-hidden">
-            {/* Middle: the assistant -- wide, flexible, primary surface.
+            {/* LEFT: the working column -- fixed width, drag-resizable 390-700, never hidden on any route.
                 This wrapping div's own `overflow-y-auto` predates this fix
                 and stays for the isHome branch (`children`+`homeThreadSlot`
                 are raw content that need it); on the non-home branch below,
@@ -107,33 +119,24 @@ export function AppShellFrame({ sidebar, composer, panel, homeThreadSlot, homeRo
                 by flexbox (not appended to `children`/module content), so
                 it stays visible without scrolling on any route that shows
                 the assistant -- matching a Claude-style anchored composer. */}
-            <main className="flex-1 flex flex-col overflow-hidden">
+            <main style={{ width: assistantWidth }} className="shrink-0 flex flex-col overflow-hidden">
               <div className="flex-1 overflow-y-auto">
-                {isHome ? (
-                  <>
-                    {children}
-                    {homeThreadSlot}
-                  </>
-                ) : (
-                  panel
-                )}
+                {isHome ? (homeThreadSlot ?? panel) : panel}
               </div>
               {composer}
             </main>
-            {/* Right: the module/page surface -- narrower, resizable,
+            {/* RIGHT: the traditional ERP surface -- takes ALL remaining width (flex-1).
+                Rendered on EVERY route, including `homeRoute`. Stale note below:
+                the module/page surface -- narrower, resizable,
                 independently scrollable (raw routed page content doesn't
                 manage its own scroll region the way `panel` does, so
                 overflow-y-auto lives on this wrapper). Hidden on
                 `homeRoute`, where `children` instead merges into the main
                 column above alongside `homeThreadSlot`. */}
-            {!isHome && (
-              <>
-                <div onMouseDown={onHandleMouseDown} className="w-[5px] cursor-col-resize shrink-0 hover:bg-ct-saffron/25" />
-                <div style={{ width: moduleWidth }} className="shrink-0 overflow-y-auto">
-                  {children}
-                </div>
-              </>
-            )}
+            <div onMouseDown={onHandleMouseDown} className="w-[5px] cursor-col-resize shrink-0 hover:bg-ct-saffron/25" />
+            <div className="flex-1 overflow-y-auto">
+              {children}
+            </div>
           </div>
         </div>
       </div>
