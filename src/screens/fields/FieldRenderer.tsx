@@ -215,12 +215,20 @@ export function FieldRenderer({ column, value, mode, onChange, onBlur, error }: 
       break;
     }
     case "DATE": {
+      // <input type="date"> only accepts an exact YYYY-MM-DD value -- a full
+      // ISO datetime string (e.g. a Date column serialized straight through
+      // NextResponse.json, "2026-09-02T00:00:00.000Z") is silently rejected
+      // and the field renders empty even though a real value is present.
+      // Caught live (R42 seq21 verification): PERMITS.OBJECT's own expiry
+      // date field went blank in Edit mode this way.
+      const raw = (value as string) ?? (column.defaultValue as string) ?? "";
+      const dateValue = typeof raw === "string" ? raw.slice(0, 10) : "";
       control_node = (
         <input
           id={inputId}
           type="date"
           className={baseInputClass}
-          value={(value as string) ?? column.defaultValue ?? ""}
+          value={dateValue}
           onChange={(e) => onChange?.(e.target.value)}
           onBlur={onBlur}
         />
