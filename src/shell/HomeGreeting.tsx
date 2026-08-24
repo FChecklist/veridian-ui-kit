@@ -6,6 +6,8 @@
 // whatever real counts the product has on hand (VERIDIAN: overdue/upcoming/
 // on-track compliance items; PROJEXA: pending queries/open todos/etc.) --
 // this component only renders them, it never computes them.
+import { useEffect, useState } from "react";
+
 export type HomeStat = { label: string; tone: "attention" | "upcoming" | "onTrack" };
 
 export type HomeGreetingProps = {
@@ -20,14 +22,31 @@ const TONE_CLASSES: Record<HomeStat["tone"], string> = {
   onTrack: "bg-emerald-50 text-emerald-700",
 };
 
-function greetingWord(): string {
-  const h = new Date().getHours();
+// R45 seq4 fix: this used to call `new Date().getHours()` directly in the
+// render body. The server (Vercel function, effectively UTC) and the
+// browser (the visitor's own local timezone) almost never agree on what
+// hour it is, so the SSR'd greeting text and the client's first hydration
+// render were two DIFFERENT strings on literally every real request outside
+// UTC -- a deterministic hydration mismatch, not a rare timing coincidence.
+// Fix: render a stable, timezone-independent greeting for the SSR'd/first
+// client pass (matches on both sides -> no mismatch), then swap to the real
+// local-time greeting in an effect once we're safely client-side only.
+const STABLE_GREETING = "Welcome back";
+
+function greetingWord(now: Date): string {
+  const h = now.getHours();
   if (h < 12) return "Good morning";
   if (h < 17) return "Good afternoon";
   return "Good evening";
 }
 
 export function HomeGreeting({ userName, summary, stats }: HomeGreetingProps) {
+  const [greeting, setGreeting] = useState(STABLE_GREETING);
+
+  useEffect(() => {
+    setGreeting(greetingWord(new Date()));
+  }, []);
+
   return (
     <div className="max-w-3xl mx-auto p-6">
       <div className="flex items-start gap-4">
@@ -38,7 +57,7 @@ export function HomeGreeting({ userName, summary, stats }: HomeGreetingProps) {
         </div>
         <div className="pt-0.5">
           <h1 className="font-heading text-2xl text-ct-navy tracking-tight">
-            {greetingWord()}, {userName}.
+            {greeting}, {userName}.
           </h1>
         </div>
       </div>
