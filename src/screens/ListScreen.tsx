@@ -58,20 +58,35 @@ export type ListScreenProps<T extends Record<string, unknown>> = {
 };
 
 export function ListScreen<T extends Record<string, unknown>>({ functionId, columns, rows, getRowId, onRowClick, emptyStateLabel = "No records yet.", renderCell }: ListScreenProps<T>) {
-  const restored = useMemo(() => loadState(functionId), [functionId]);
-  const [sortField, setSortField] = useState<string | null>(restored?.sortField ?? null);
-  const [sortDir, setSortDir] = useState<"asc" | "desc">(restored?.sortDir ?? "asc");
-  const [page, setPage] = useState(restored?.page ?? 0);
+  // R45 seq4 fix: sessionStorage must NEVER be read during the render that
+  // produces the FIRST client output -- the server has no sessionStorage
+  // (always renders these as null/"asc"/0), so reading it eagerly via
+  // useMemo in the render body made the client's very first render diverge
+  // from the server's, which is a real, deterministic hydration mismatch
+  // every time a screen had ever saved state before (i.e. on literally
+  // every back-navigation, the exact case this feature exists for). Both
+  // renders now start from the SAME defaults the server used; the actual
+  // restore happens in an effect (client-only, post-hydration, matching the
+  // scroll-restore effect below), so the mismatch can't occur.
+  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [page, setPage] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Restore scroll position once, after the rows this page needs are present.
+  // Restore saved filters/sort/page/scroll once, after mount (never during
+  // render/SSR). Runs before the save-effect below thanks to effect order.
   useEffect(() => {
-    if (restored?.scrollY && scrollRef.current) {
+    const restored = loadState(functionId);
+    if (!restored) return;
+    if (restored.sortField !== null) setSortField(restored.sortField);
+    if (restored.sortDir) setSortDir(restored.sortDir);
+    if (restored.page) setPage(restored.page);
+    if (restored.scrollY && scrollRef.current) {
       scrollRef.current.scrollTop = restored.scrollY;
     }
     // Only on mount -- this is a one-time restore, not a live sync.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [functionId]);
 
   useEffect(() => {
     const el = scrollRef.current;
