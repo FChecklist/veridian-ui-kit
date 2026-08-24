@@ -53,9 +53,11 @@ export type ListScreenProps<T extends Record<string, unknown>> = {
   getRowId: (row: T) => string;
   onRowClick?: (row: T) => void;
   emptyStateLabel?: string;
+  /** Per-column custom cell renderer (e.g. a StatusBadge for a derived "days left" column) -- overrides the default text formatter for that field only. */
+  renderCell?: Record<string, (row: T) => React.ReactNode>;
 };
 
-export function ListScreen<T extends Record<string, unknown>>({ functionId, columns, rows, getRowId, onRowClick, emptyStateLabel = "No records yet." }: ListScreenProps<T>) {
+export function ListScreen<T extends Record<string, unknown>>({ functionId, columns, rows, getRowId, onRowClick, emptyStateLabel = "No records yet.", renderCell }: ListScreenProps<T>) {
   const restored = useMemo(() => loadState(functionId), [functionId]);
   const [sortField, setSortField] = useState<string | null>(restored?.sortField ?? null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">(restored?.sortDir ?? "asc");
@@ -160,7 +162,7 @@ export function ListScreen<T extends Record<string, unknown>>({ functionId, colu
                 >
                   {visibleColumns.map((column) => (
                     <td key={column.field} className={`px-4 py-2 whitespace-nowrap ${column.type === "number" ? "text-right tabular-nums" : ""}`}>
-                      {formatCell(column, row[column.field])}
+                      {renderCell?.[column.field] ? renderCell[column.field](row) : formatCell(column, row[column.field])}
                     </td>
                   ))}
                 </tr>
