@@ -13,7 +13,8 @@
     "./composer": "./src/composer/index.ts",
     "./panel": "./src/panel/index.ts",
     "./context": "./src/context/index.ts",
-    "./prompt-patterns": "./src/prompt-patterns/index.ts"
+    "./prompt-patterns": "./src/prompt-patterns/index.ts",
+    "./screens": "./src/screens/index.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"

@@ -30,6 +30,18 @@
   --color-scope-tint: #F4EFE2;
   --color-scope-tint-border: #E6DEC9;
 
+  /* R42 seq21 addition (M24/M31 status-semantic palette -- distinct purpose
+     from the ct-* chrome tokens above: these four colour a task/document's
+     STATUS specifically -- needs-you/running-or-context/done/late-or-error
+     -- never the general UI surface. Always paired with a glyph, never
+     colour alone (M24: ~8% of men have colour-vision deficiency).
+     Nothing above ~40% saturation, per M24. Added here, not forked
+     per-product, per this file's own header instruction. */
+  --color-veri-status-context: #4a7fa5;  /* dusty blue -- selection and context */
+  --color-veri-status-needs-you: #c08a4a; /* clay -- your move / needs you */
+  --color-veri-status-done: #5a9178;      /* sage -- done / success */
+  --color-veri-status-late: #b5748a;      /* rose -- late / error, the ONLY loud colour */
+
   --font-heading: var(--veridian-font-heading, "DM Serif Display"), Georgia, serif;
   --font-sans: var(--veridian-font-sans, "Inter"), system-ui, sans-serif;
 }
