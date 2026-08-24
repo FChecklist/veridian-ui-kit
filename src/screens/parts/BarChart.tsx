@@ -5,9 +5,9 @@
 // NEVER a pie with more than 5 segments; prefer a sorted horizontal bar
 // always." This is that bar -- the ONLY category-comparison chart this kit
 // offers, deliberately, so a pie never gets reached for out of habit.
-import type { StatusTone } from "../types";
+import type { KpiTone } from "./KpiCard";
 
-export type BarChartDatum = { label: string; value: number; tone?: StatusTone };
+export type BarChartDatum = { label: string; value: number; tone?: KpiTone };
 
 export type BarChartProps = {
   data: BarChartDatum[];

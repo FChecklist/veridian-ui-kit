@@ -15,9 +15,15 @@
 // real" from "nowhere"), so the live-user verification pass (this seq's own
 // S4 checklist) is what actually catches an omitted one. ***
 import type { ReactNode } from "react";
-import type { StatusTone } from "../types";
 
-export type KpiTrend = { direction: "up" | "down" | "flat"; label: string; tone: StatusTone };
+// Deliberately NOT the full StatusTone union (types.ts) -- only these four
+// have a real --color-veri-status-* CSS variable defined (globals.css);
+// "running"/"waiting"/"neutral" have no matching variable and would
+// silently render as an invalid custom property. If StatusTone ever gains
+// matching variables for those, widen this to match.
+export type KpiTone = "context" | "needs-you" | "done" | "late";
+
+export type KpiTrend = { direction: "up" | "down" | "flat"; label: string; tone: KpiTone };
 
 export type KpiCardProps = {
   label: string;

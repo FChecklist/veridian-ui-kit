@@ -13,7 +13,7 @@ export type { AnalyticalScreenProps } from "./AnalyticalScreen";
 export { ReportScreen } from "./ReportScreen";
 export type { ReportScreenProps, ReportHeaderBlock } from "./ReportScreen";
 export { KpiCard } from "./parts/KpiCard";
-export type { KpiCardProps, KpiTrend } from "./parts/KpiCard";
+export type { KpiCardProps, KpiTrend, KpiTone } from "./parts/KpiCard";
 export { Sparkline } from "./parts/Sparkline";
 export type { SparklineProps } from "./parts/Sparkline";
 export { BulletChart } from "./parts/BulletChart";
