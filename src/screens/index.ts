@@ -4,6 +4,8 @@ export { ListScreen } from "./ListScreen";
 export type { ListScreenProps } from "./ListScreen";
 export { ObjectScreen } from "./ObjectScreen";
 export type { ObjectScreenProps, ObjectScreenMode } from "./ObjectScreen";
+export { FormScreen } from "./FormScreen";
+export type { FormScreenProps } from "./FormScreen";
 export { FormSection } from "./FormSection";
 export type { FormSectionProps } from "./FormSection";
 export { FieldRenderer } from "./fields/FieldRenderer";

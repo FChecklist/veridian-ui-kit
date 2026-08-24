@@ -47,6 +47,7 @@ function deriveControl(column: ScreenColumn): NonNullable<ScreenColumn["control"
 function formatDisplay(column: ScreenColumn, value: unknown): string {
   if (value === null || value === undefined || value === "") return EMPTY_VALUE_DISPLAY;
   if (column.type === "boolean") return value ? "Yes" : "No";
+  if (value instanceof File) return value.name;
   if (column.type === "date" && typeof value === "string") {
     const d = new Date(value);
     return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleDateString();
@@ -247,6 +248,29 @@ export function FieldRenderer({ column, value, mode, onChange, onBlur, error }: 
             onBlur={onBlur}
           />
           {column.unit && <span className="text-[12px] text-ct-muted shrink-0">{column.unit}</span>}
+        </div>
+      );
+      break;
+    }
+    case "FILE": {
+      // Genuinely a new generic control (M30 vocabulary extension, not a
+      // per-module bespoke widget) -- added in R42 seq22 for Work Progress's
+      // site-photo attachment, but the control itself is module-agnostic:
+      // any future FORM/OBJECT field that needs a file just sets
+      // control:"FILE". Caller owns storage/upload -- onChange receives the
+      // raw File, same "no networking owned by the kit" rule as everywhere
+      // else in this directory.
+      const file = value instanceof File ? value : null;
+      control_node = (
+        <div>
+          <input
+            id={inputId}
+            type="file"
+            onChange={(e) => onChange?.(e.target.files?.[0] ?? null)}
+            onBlur={onBlur}
+            className="block w-full text-[13px] text-ct-navy file:mr-3 file:rounded-md file:border-0 file:bg-ct-cloud file:px-2.5 file:py-1.5 file:text-[12.5px] file:text-ct-navy"
+          />
+          {file && <p className="mt-1 text-[12px] text-ct-muted">{file.name}</p>}
         </div>
       );
       break;

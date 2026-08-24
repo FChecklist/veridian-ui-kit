@@ -11,7 +11,7 @@ export type ScreenColumn = {
   label: string;
   field: string;
   type: string;
-  control?: "RADIO" | "CHECKBOX" | "SELECT" | "COMBOBOX" | "MULTISELECT" | "DATE" | "NUMBER" | "TEXT" | "DERIVED" | "HIDDEN";
+  control?: "RADIO" | "CHECKBOX" | "SELECT" | "COMBOBOX" | "MULTISELECT" | "DATE" | "NUMBER" | "TEXT" | "FILE" | "DERIVED" | "HIDDEN";
   optionsSource?: string;
   options?: { value: string; label: string }[]; // resolved options, when the consuming app has already fetched optionsSource
   defaultValue?: unknown;
