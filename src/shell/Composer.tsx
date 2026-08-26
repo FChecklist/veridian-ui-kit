@@ -62,6 +62,26 @@ export type ComposerProps = {
    *  they arrive and leave with the composer." */
   pills?: ReactNode;
 
+  /**
+   * Replaces bands 3 and 4 (PILLS + INPUT) with the product's own working
+   * input surface, so a product can adopt the M24 frame -- top rail, two panes,
+   * the control strip and its two safety-critical rules -- WITHOUT first having
+   * to rebuild a composer that already works.
+   *
+   * This exists because PROJEXA's VeriComposer is 440 lines of real, wired
+   * chain/dispatch behaviour reaching /api/assistant and /api/discuss. Throwing
+   * that away to adopt a frame would be paying twice, which is the exact
+   * mistake M24's own phase ordering is arranged to avoid.
+   *
+   * Bands 1 and 2 (CONTROL STRIP, CONVERSATION) are NOT overridable: the strip
+   * carries (x)-cannot-remove-the-project and history-loads-but-never-executes,
+   * and those must not be substitutable by a consumer.
+   *
+   * A slot passed here MUST NOT render a second mode selector -- the strip
+   * already owns Mode, and M24's band rule is that nothing appears twice.
+   */
+  inputSlot?: ReactNode;
+
   value: string;
   onChange: (v: string) => void;
   onSubmit?: () => void;
@@ -86,6 +106,7 @@ export function Composer({
   onTogglePin,
   conversation,
   pills,
+  inputSlot,
   value,
   onChange,
   onSubmit,
@@ -157,6 +178,12 @@ export function Composer({
           <div className="min-h-0 flex-1 overflow-y-auto px-3 py-2">{conversation}</div>
         )}
 
+        {/* 3 + 4, PRODUCT-SUPPLIED. Bands 1 and 2 above are still the kit's,
+            so the strip and its safety rules are never substituted out. */}
+        {inputSlot ? (
+          <div className="shrink-0">{inputSlot}</div>
+        ) : (
+          <>
         {/* 3. PILLS -- arrive and leave with the composer. */}
         {pills && (
           <div className="shrink-0 px-3 pb-1.5 pt-1" style={{ borderColor: "var(--color-ct-border)" }}>
@@ -202,6 +229,8 @@ export function Composer({
             </button>
           </div>
         </div>
+          </>
+        )}
       </div>
     </div>
   );
