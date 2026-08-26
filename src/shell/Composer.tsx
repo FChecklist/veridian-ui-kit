@@ -33,10 +33,24 @@ import { ControlStrip } from "./ControlStrip";
 import { HistoryDrop } from "./HistoryDrop";
 import type { Chain, ChainLoad, ChainMode, HistoryEntry } from "./chain";
 
-/** M24-A: "At rest it should be roughly 120-150px, not 60px." The shell
- *  reserves exactly this much space beneath the panes; anything above it is an
- *  overlay, so expanding never reflows the panes. */
-export const COMPOSER_RESTING_HEIGHT = 132;
+/**
+ * The space the shell reserves beneath the panes. Anything above it is overlay,
+ * so expanding never reflows the panes.
+ *
+ * M24 (original): "RESTING = control strip + one input line."
+ * M24-A (correction): "At rest it should be roughly 120-150px, not 60px" -- a
+ * box you can see is a place to type, not a toolbar.
+ *
+ * 112px is control strip (~36) + one real input line (~56) + padding, which
+ * satisfies both: it reads as a box, and it is two lines, not a panel. Measured
+ * against the live shell on 2026-08-26, where the resting composer was taking
+ * roughly 40% of the viewport and clipping the project cards and the Create
+ * Project button off the bottom of the screen. That was NOT this constant --
+ * it was the product's own input slot rendering a mode row plus an oversized
+ * textarea -- but the floor is lowered here too so the kit cannot contribute to
+ * it. Note this is a MINIMUM: the box still grows for real content.
+ */
+export const COMPOSER_RESTING_HEIGHT = 112;
 
 /** The ceiling the box grows to. It sizes itself between the two. */
 export const COMPOSER_MAX_HEIGHT_VH = 62;
@@ -63,10 +77,20 @@ export type ComposerProps = {
   pills?: ReactNode;
 
   /**
-   * Replaces bands 3 and 4 (PILLS + INPUT) with the product's own working
-   * input surface, so a product can adopt the M24 frame -- top rail, two panes,
-   * the control strip and its two safety-critical rules -- WITHOUT first having
-   * to rebuild a composer that already works.
+   * Replaces band 4 (INPUT) with the product's own working input surface, so a
+   * product can adopt the M24 frame -- top rail, two panes, the control strip
+   * and its two safety-critical rules -- WITHOUT first having to rebuild a
+   * composer that already works.
+   *
+   * NARROWED 2026-08-26, after looking at the live shell. This used to replace
+   * bands 3 AND 4, which meant a product supplying its own input could not get
+   * the kit's ranked PillStrip and would render its own mode row instead. That
+   * is exactly what happened on projexa-ai.com: the control strip showed
+   * Projects|Customers|Vendors and VeriComposer rendered
+   * Discuss|Chats|To Do|Construction Intelligence directly beneath it -- TWO
+   * BANDS ANSWERING THE SAME QUESTION, which is the one thing M24's band rule
+   * forbids. Band 3 is now always the kit's, so a product cannot accidentally
+   * grow a second mode row underneath the strip.
    *
    * This exists because PROJEXA's VeriComposer is 440 lines of real, wired
    * chain/dispatch behaviour reaching /api/assistant and /api/discuss. Throwing
@@ -178,18 +202,19 @@ export function Composer({
           <div className="min-h-0 flex-1 overflow-y-auto px-3 py-2">{conversation}</div>
         )}
 
-        {/* 3 + 4, PRODUCT-SUPPLIED. Bands 1 and 2 above are still the kit's,
-            so the strip and its safety rules are never substituted out. */}
-        {inputSlot ? (
-          <div className="shrink-0">{inputSlot}</div>
-        ) : (
-          <>
-        {/* 3. PILLS -- arrive and leave with the composer. */}
+        {/* 3. PILLS -- always the kit's, never substitutable. Arrive and leave
+            with the composer (M24: "PILLS APPEAR ONLY WHEN COMPOSING"). */}
         {pills && (
           <div className="shrink-0 px-3 pb-1.5 pt-1" style={{ borderColor: "var(--color-ct-border)" }}>
             {pills}
           </div>
         )}
+
+        {/* 4. INPUT -- product-supplied when inputSlot is given. */}
+        {inputSlot ? (
+          <div className="shrink-0">{inputSlot}</div>
+        ) : (
+          <>
 
         {/* 4. INPUT -- real height, generous padding. Not a single line. */}
         <div className={`shrink-0 px-3 pb-2.5 pt-1${disabled ? " veri-composer-disabled" : ""}`}>
