@@ -37,7 +37,7 @@ export type { Chain, ChainLoad, ChainMode, ChainSegment, HistoryEntry, SegmentKi
 // PHASE C -- the pill set (M24 / MP-RULE-3 / MP-RISK-2 / MP-RISK-3).
 // ---------------------------------------------------------------------------
 export { PillStrip, selectPill } from "./PillStrip";
-export type { PillStripProps, PillSelection } from "./PillStrip";
+export type { PillStripProps, PillSelection, RankedPill } from "./PillStrip";
 export { OptionChain } from "./OptionChain";
 export type { OptionChainProps, ChainOption } from "./OptionChain";
 export {

@@ -18,7 +18,7 @@
 // perform a write, because there is nothing on the value it produces that
 // could perform one.
 
-import { rankPills, type PillDef, type PillKey, type PillUsage } from "./pillConfig";
+import { UNIVERSAL_PILLS, rankPills, type PillDef, type PillKey, type PillUsage } from "./pillConfig";
 
 /**
  * What a pill click produces. Deliberately inert, and deliberately mirrors
@@ -42,22 +42,59 @@ export function selectPill(pill: PillDef): PillSelection {
   return { pillKey: pill.key, label: pill.label, isFreeText: Boolean(pill.isFreeText), authorizes: false };
 }
 
+/**
+ * A pill as the SERVER ranked it. The backend computes MP-RULE-3 as a query
+ * (pinned at any age -> inside the 7-day window by use_count -> outside the
+ * window by last-used-ever), so when this is supplied it is rendered IN ORDER
+ * and never re-sorted here. `tier` says which of the three rules put the pill
+ * where it is, so a wrong order is diagnosable without a reproduction.
+ */
+export type RankedPill = {
+  pillKey: string;
+  label?: string;
+  pinned?: boolean;
+  tier?: "pinned" | "window" | "last_used_ever";
+};
+
 export type PillStripProps = {
-  /** compliance.pill_usage rows for THIS user, via R53's API. Ranking is a
-   *  query there; this component re-expresses the same order for rendering and
-   *  must not diverge from it. */
+  /** compliance.pill_usage rows for THIS user. Used only for the OFFLINE
+   *  fallback ordering when the server did not answer. */
   usage: PillUsage[];
-  /** Injected so the ordering is deterministic and testable. */
+  /** Injected so the fallback ordering is deterministic and testable. */
   now: number;
+  /**
+   * The server's ranking. WHEN PRESENT THIS WINS AND IS RENDERED VERBATIM --
+   * the ranking is authoritative on the server and re-sorting it here would
+   * silently produce a different strip from the one the backend computed.
+   * The local rankPills() implements the same three tiers and stays as the
+   * fallback for when the call fails, so a degraded network shows a sensible
+   * strip rather than an empty one.
+   */
+  ordered?: RankedPill[];
   activeKey?: PillKey | null;
   onSelect: (selection: PillSelection) => void;
   onTogglePin?: (key: PillKey) => void;
   limit?: number;
 };
 
-export function PillStrip({ usage, now, activeKey, onSelect, onTogglePin, limit }: PillStripProps) {
-  const pills = rankPills(usage, now, limit ? { limit } : {});
-  const pinnedKeys = new Set(usage.filter((r) => r.pinned).map((r) => r.pillKey));
+export function PillStrip({ usage, now, ordered, activeKey, onSelect, onTogglePin, limit }: PillStripProps) {
+  const fromServer = ordered && ordered.length > 0;
+
+  const pills: PillDef[] = fromServer
+    ? // Rendered in the server's order. A pill the local set does not know
+      // about still renders, using the server's own label -- the backend is
+      // allowed to know about modules this build does not.
+      ordered!.map((p, i) => {
+        const known = UNIVERSAL_PILLS.find((u) => u.key === p.pillKey || u.label === p.pillKey);
+        return known ?? { key: p.pillKey as PillKey, label: p.label ?? p.pillKey, sortOrder: i };
+      })
+    : rankPills(usage, now, limit ? { limit } : {});
+
+  const pinnedKeys = new Set<string>(
+    fromServer
+      ? ordered!.filter((p) => p.pinned).map((p) => p.pillKey)
+      : usage.filter((r) => r.pinned).map((r) => r.pillKey)
+  );
 
   return (
     <div className="flex flex-wrap items-center gap-1" role="group" aria-label="Modules">
