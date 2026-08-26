@@ -51,7 +51,12 @@ export function AppSidebar({ sections, logo, productName = "VERIDIAN AI", collap
   // right panel ~40% of the viewport. Existing 140-320px bounds unchanged --
   // only the starting/default width now targets a true percentage instead
   // of a fixed 220px guess.
-  const { width, onHandleMouseDown } = useResizableWidth(220, 140, 320, "left", () => Math.round(window.innerWidth * 0.1));
+  // R48_LAYOUT_REFLOW_01. The ~10% proportion is now a CSS width (see
+  // AppShellFrame's stylesheet: max(140px, min(320px, 10vw)), which is the
+  // same 140-320 clamp this hook enforces), applied on the first paint
+  // instead of in a post-mount effect that used to jump the column from
+  // 220px to its real width and re-flow everything beside it.
+  const { width, onHandleMouseDown, elementRef } = useResizableWidth(220, 140, 320, "left");
 
   if (collapsed) return null;
 
@@ -60,7 +65,12 @@ export function AppSidebar({ sections, logo, productName = "VERIDIAN AI", collap
 
   return (
     <>
-      <aside style={{ width }} className="shrink-0 h-full border-r border-ct-border bg-white flex flex-col overflow-hidden">
+      <aside
+        ref={elementRef as unknown as React.Ref<never>}
+        data-vk-col="sidebar"
+        style={width != null ? { width } : undefined}
+        className="vk-sidebar-col shrink-0 h-full border-r border-ct-border bg-white flex flex-col overflow-hidden"
+      >
         <div className="shrink-0 flex items-center gap-2 px-3 pt-3.5 pb-2">
           {logo ?? <div className="grid size-7 place-items-center rounded-lg bg-ct-navy text-white text-xs font-bold">{productName.charAt(0)}</div>}
           <span className="font-heading text-[15px] text-ct-navy tracking-tight truncate">{productName}</span>

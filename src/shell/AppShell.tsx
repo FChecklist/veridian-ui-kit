@@ -48,7 +48,12 @@ export const LEFT_PANE_PERCENT = 30;
 
 export function AppShell({ topRail, taskMaster, children, composer }: AppShellProps) {
   return (
-    <div className="flex h-dvh flex-col overflow-hidden" style={{ background: "var(--color-ct-cream)" }}>
+    // h-[100svh], not h-dvh. dvh tracks the mobile URL bar, so the whole shell
+    // resizes vertically mid-scroll and both panes reflow -- a post-mount shift
+    // this component introduced that the old shell (h-screen) did not have.
+    // svh is the stable small-viewport unit: it does not move when the URL bar
+    // shows or hides.
+    <div className="flex h-[100svh] flex-col overflow-hidden" style={{ background: "var(--color-ct-cream)" }}>
       {topRail}
 
       {/* relative: the composer overlay is positioned against this box, so it
@@ -61,15 +66,34 @@ export function AppShell({ topRail, taskMaster, children, composer }: AppShellPr
           // overlay, never reflow.
           style={{ paddingBottom: COMPOSER_RESTING_HEIGHT }}
         >
+          {/* scrollbarGutter: "stable" on BOTH panes.
+              R48_LAYOUT_REFLOW_01's original mechanism (the old shell's
+              post-mount column-width jump) is gone from this shell, but an
+              adversarial re-read found a second, independent source that
+              survived: this project forces a 6px space-taking scrollbar in
+              globals.css and declared scrollbar-gutter nowhere. So the moment a
+              route's async data crossed the overflow threshold, the pane's
+              content box narrowed by 6px and every control inside it moved --
+              after load, under the user's cursor, and again on every crossing.
+              That is the same user-visible failure the fault describes, and it
+              is the mechanism most likely to have kept reproducing it.
+              Reserving the gutter makes the content box the same width whether
+              or not the scrollbar is present. */}
           <aside
             className="min-h-0 shrink-0 overflow-hidden border-r"
-            style={{ width: `${LEFT_PANE_PERCENT}%`, borderColor: "var(--color-ct-border)" }}
+            style={{
+              width: `${LEFT_PANE_PERCENT}%`,
+              borderColor: "var(--color-ct-border)",
+              scrollbarGutter: "stable",
+            }}
             aria-label="Task Master"
           >
             {taskMaster}
           </aside>
 
-          <main className="min-h-0 min-w-0 flex-1 overflow-y-auto">{children}</main>
+          <main className="min-h-0 min-w-0 flex-1 overflow-y-auto" style={{ scrollbarGutter: "stable" }}>
+            {children}
+          </main>
         </div>
 
         {composer}
