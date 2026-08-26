@@ -34,6 +34,24 @@ export {
 export type { Chain, ChainLoad, ChainMode, ChainSegment, HistoryEntry, SegmentKind } from "./chain";
 
 // ---------------------------------------------------------------------------
+// PHASE C -- the pill set (M24 / MP-RULE-3 / MP-RISK-2 / MP-RISK-3).
+// ---------------------------------------------------------------------------
+export { PillStrip, selectPill } from "./PillStrip";
+export type { PillStripProps, PillSelection } from "./PillStrip";
+export { OptionChain } from "./OptionChain";
+export type { OptionChainProps, ChainOption } from "./OptionChain";
+export {
+  UNIVERSAL_PILLS,
+  MERGED_TASKS_PILL,
+  TASKS_PILL_MERGED,
+  VISIBLE_PILLS,
+  WINDOW_DAYS,
+  rankPills,
+  renderedPillSet,
+} from "./pillConfig";
+export type { PillDef, PillKey, PillUsage } from "./pillConfig";
+
+// ---------------------------------------------------------------------------
 // PRE-M24 SHELL. Still exported for products that have not migrated.
 // PROJEXA moves to AppShell above; M24 deletes its left rail entirely
 // ("HOME = THE GROUPED MODULE DIRECTORY, rendered in the RIGHT pane. It
