@@ -154,8 +154,15 @@ export function TaskMaster({ tabs, activeTab, onTabChange, needsYou, waitingOnOt
       {/* HEADER TABS WITH LIVE COUNTS, using the kit's existing .veri-view-tab
           + .veri-view-badge -- exactly what M24-B says Task Master's header
           needs, rather than new CSS. */}
+      {/* WRAPS, never scrolls horizontally. Fixed 2026-08-26 after looking at
+          the live shell: in the 30% pane these five tabs overflowed, so
+          "History" rendered as "Hi" behind a horizontal scrollbar. M24 is
+          explicit that the answer to a name not fitting is never to widen the
+          pane -- so the row wraps to a second line instead, and no label is
+          ever clipped. flex-wrap + whitespace-nowrap together mean a tab moves
+          down whole rather than being cut in half. */}
       <div
-        className="flex shrink-0 items-center gap-1 overflow-x-auto border-b px-2 py-1.5"
+        className="flex shrink-0 flex-wrap items-center gap-x-1 gap-y-0.5 border-b px-2 py-1.5"
         style={{ borderColor: "var(--color-ct-border)" }}
         role="tablist"
       >
@@ -166,9 +173,13 @@ export function TaskMaster({ tabs, activeTab, onTabChange, needsYou, waitingOnOt
             role="tab"
             aria-selected={activeTab === t.id}
             onClick={() => onTabChange(t.id)}
-            className={`veri-view-tab shrink-0${activeTab === t.id ? " active" : ""}`}
+            className={`veri-view-tab shrink-0 whitespace-nowrap${activeTab === t.id ? " active" : ""}`}
           >
             {t.label}
+            {/* M24: live counts so the user knows before clicking. Completed and
+                History pass no count at all -- nothing there needs action --
+                and a zero count renders no badge, because a row of "0" badges
+                is noise, not information. */}
             {typeof t.count === "number" && t.count > 0 && <span className="veri-view-badge">{t.count}</span>}
           </button>
         ))}
