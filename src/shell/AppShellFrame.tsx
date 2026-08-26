@@ -97,10 +97,28 @@ export function AppShellFrame({ sidebar, composer, panel, homeThreadSlot, homeRo
   // direction "left". Width follows the MOCK1 geometry: 430px, and 390px
   // below a 1050px viewport. Drag range 390-700 so the user can widen the
   // working column if it feels cramped at 430.
-  const { width: assistantWidth, onHandleMouseDown } = useResizableWidth(430, 390, 700, "left", () => (window.innerWidth < 1050 ? 390 : 430));
+  // R48_LAYOUT_REFLOW_01. The responsive default is expressed in CSS below,
+  // NOT applied in a post-mount effect, so the first paint is already the
+  // final geometry. `assistantWidth` stays null until the user actually
+  // drags the handle; only then does an inline width take over.
+  const { width: assistantWidth, onHandleMouseDown, elementRef: assistantRef } = useResizableWidth(430, 390, 700, "left");
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-ct-cream">
+      {/* R48_LAYOUT_REFLOW_01 -- the shell's default column widths, in CSS so
+          the FIRST paint is correct on server and client alike. Deliberately
+          a plain <style> element rather than Tailwind utility classes: this
+          package ships source, and a consuming app's Tailwind content scan
+          does not reliably cover node_modules, so a class added here can
+          silently generate no CSS in the consumer. These two rules reproduce
+          exactly the geometry the old post-mount effect produced -- 430px
+          (390px under 1050px) for the assistant column, and 10vw clamped to
+          140-320px for the sidebar -- with zero layout shift. */}
+      <style>{`
+        .vk-assistant-col { width: 430px; }
+        @media (max-width: 1049px) { .vk-assistant-col { width: 390px; } }
+        .vk-sidebar-col { width: max(140px, min(320px, 10vw)); }
+      `}</style>
       {header}
       <div className="flex flex-1 overflow-hidden">
         {sidebar}
@@ -119,7 +137,12 @@ export function AppShellFrame({ sidebar, composer, panel, homeThreadSlot, homeRo
                 by flexbox (not appended to `children`/module content), so
                 it stays visible without scrolling on any route that shows
                 the assistant -- matching a Claude-style anchored composer. */}
-            <main style={{ width: assistantWidth }} className="shrink-0 flex flex-col overflow-hidden">
+            <main
+              ref={assistantRef as unknown as React.Ref<never>}
+              data-vk-col="assistant"
+              style={assistantWidth != null ? { width: assistantWidth } : undefined}
+              className="vk-assistant-col shrink-0 flex flex-col overflow-hidden"
+            >
               <div className="flex-1 overflow-y-auto">
                 {isHome ? (homeThreadSlot ?? panel) : panel}
               </div>

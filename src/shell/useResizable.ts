@@ -14,41 +14,55 @@ export function useResizableWidth(
   min: number,
   max: number,
   direction: "left" | "right",
-  // Optional: computes a real, viewport-relative default (e.g. a % of
-  // window.innerWidth for a genuine 3-screen proportion) applied once after
-  // mount. Deliberately NOT read during the initial useState() call --
-  // window is unavailable during SSR, and using it there would cause a
-  // React hydration mismatch (server renders `initial`, client would render
-  // something else on the same pass). Running it in an effect instead means
-  // the first paint always matches SSR (using `initial`), then updates a
-  // frame later on the client only -- same pattern React itself recommends
-  // for any browser-only computed value. Fully backward compatible: every
-  // existing call site that omits this argument behaves identically to
-  // before this parameter existed.
+  /**
+   * @deprecated ACCEPTED BUT NO LONGER USED, and deliberately kept in the
+   * signature so existing external call sites keep compiling.
+   *
+   * This used to compute a viewport-relative default and apply it in a
+   * post-mount effect. That is what caused R48_LAYOUT_REFLOW_01: the column
+   * painted at `initial`, then jumped to the responsive value one frame
+   * later, and the flex-1 column beside it absorbed the difference and
+   * re-flowed. Measured on production at a 1036px viewport: the sidebar went
+   * 220 -> 140 and the assistant column 430 -> 390, so the module surface
+   * gained 120px and every control inside it moved -- one measured control
+   * travelled ~140px once text re-wrap is included. A user who began a click
+   * as the page settled could land on a different control than the one they
+   * aimed at.
+   *
+   * The responsive default now lives in CSS (see AppShellFrame's own
+   * stylesheet), so the FIRST paint is already correct on both server and
+   * client. That removes the shift AND the hydration-mismatch risk the
+   * effect was originally introduced to avoid -- CSS renders identically on
+   * both sides, so there is nothing to mismatch.
+   */
   getResponsiveInitial?: () => number
 ) {
-  const [width, setWidth] = useState(initial);
+  // `null` means "no user preference yet -- let CSS decide the width".
+  // A number means the user has dragged the handle, and that explicit width
+  // wins from then on. Starting at null is what makes the first paint
+  // authoritative instead of provisional.
+  const [width, setWidth] = useState<number | null>(null);
+  const elementRef = useRef<HTMLElement | null>(null);
   const dragState = useRef<{ dragging: boolean; startX: number; startWidth: number } | null>(null);
 
-  useEffect(() => {
-    if (!getResponsiveInitial) return;
-    const responsive = getResponsiveInitial();
-    setWidth(Math.max(min, Math.min(max, responsive)));
-    // Only ever applied once, on mount -- this sets the real starting
-    // proportion, it does not keep re-syncing on every window resize (that
-    // would fight a user's own manual drag-resize, which is real,
-    // unchanged, pre-existing behavior this hook must not disturb).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  void initial;
+  void getResponsiveInitial;
 
   const onHandleMouseDown = useCallback(
     (e: React.MouseEvent) => {
-      dragState.current = { dragging: true, startX: e.clientX, startWidth: width };
+      // Read the width the browser is ACTUALLY rendering right now. While
+      // `width` is still null that value comes from CSS, so measuring the
+      // element is the only way to start the drag from where the handle
+      // visually is -- and it keeps the drag continuous rather than
+      // snapping to a remembered number.
+      const measured = elementRef.current?.getBoundingClientRect().width;
+      const startWidth = width ?? (typeof measured === "number" ? measured : min);
+      dragState.current = { dragging: true, startX: e.clientX, startWidth };
       document.body.style.cursor = "col-resize";
       document.body.style.userSelect = "none";
       e.preventDefault();
     },
-    [width]
+    [width, min]
   );
 
   useEffect(() => {
@@ -72,5 +86,5 @@ export function useResizableWidth(
     };
   }, [direction, min, max]);
 
-  return { width, onHandleMouseDown };
+  return { width, onHandleMouseDown, elementRef };
 }
