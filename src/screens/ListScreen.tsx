@@ -173,7 +173,23 @@ export function ListScreen<T extends Record<string, unknown>>({ functionId, colu
                 <tr
                   key={getRowId(row)}
                   onClick={() => onRowClick?.(row)}
-                  className={onRowClick ? "border-b border-ct-border hover:bg-ct-cloud cursor-pointer" : "border-b border-ct-border"}
+                  tabIndex={onRowClick ? 0 : undefined}
+                  role={onRowClick ? "button" : undefined}
+                  onKeyDown={
+                    onRowClick
+                      ? (e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            onRowClick(row);
+                          }
+                        }
+                      : undefined
+                  }
+                  className={
+                    onRowClick
+                      ? "border-b border-ct-border hover:bg-ct-cloud cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ct-navy"
+                      : "border-b border-ct-border"
+                  }
                 >
                   {visibleColumns.map((column) => (
                     <td key={column.field} className={`px-4 py-2 whitespace-nowrap ${column.type === "number" ? "text-right tabular-nums" : ""}`}>
