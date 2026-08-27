@@ -40,13 +40,35 @@ export type AppShellProps = {
   children: ReactNode;
   /** <Composer />. Docked, full width, overlaying the bottom of both panes. */
   composer: ReactNode;
+  /**
+   * F_019 fix (2026-08-27): additional px added on top of
+   * COMPOSER_RESTING_HEIGHT when reserving space for the composer's OWN
+   * static resting footprint. Zero by default -- unchanged behaviour for any
+   * caller whose composer really does stay at "control strip + one input
+   * line" while at rest, exactly as COMPOSER_RESTING_HEIGHT assumes.
+   *
+   * A caller that (like PROJEXA's M24Shell) always renders the composer's
+   * `pills` slot -- never omitting it, so band 3 is part of every resting
+   * state, not just "while composing" -- must pass enough extra reserve to
+   * cover it (see COMPOSER_PILLS_BAND_RESERVE in Composer.tsx), or the
+   * composer's real, taller footprint silently overlaps whatever page
+   * content has scrolled to the pane's own bottom edge and swallows its
+   * clicks. See Composer.tsx's COMPOSER_PILLS_BAND_RESERVE doc comment for
+   * the live reproduction this fixes.
+   *
+   * Deliberately a static number the caller supplies once, not a measured
+   * live height fed back into this padding -- see that same doc comment for
+   * why a live-measurement approach would reintroduce R48_LAYOUT_REFLOW_01's
+   * failure class instead of this one.
+   */
+  composerReserveExtra?: number;
 };
 
 /** M24: LEFT 30% / RIGHT 70% (left was 40%, "reduced 22 Aug once the module
  *  column was cut"). */
 export const LEFT_PANE_PERCENT = 30;
 
-export function AppShell({ topRail, taskMaster, children, composer }: AppShellProps) {
+export function AppShell({ topRail, taskMaster, children, composer, composerReserveExtra = 0 }: AppShellProps) {
   return (
     // h-[100svh], not h-dvh. dvh tracks the mobile URL bar, so the whole shell
     // resizes vertically mid-scroll and both panes reflow -- a post-mount shift
@@ -63,8 +85,11 @@ export function AppShell({ topRail, taskMaster, children, composer }: AppShellPr
           className="flex h-full min-h-0"
           // The reserved strip at the bottom. This is the ONLY place the
           // resting height is applied to layout -- expansion beyond it is
-          // overlay, never reflow.
-          style={{ paddingBottom: COMPOSER_RESTING_HEIGHT }}
+          // overlay, never reflow. composerReserveExtra (default 0, see the
+          // prop doc above) covers a caller whose composer's real resting
+          // footprint is taller than the kit's own "control strip + one
+          // input line" baseline.
+          style={{ paddingBottom: COMPOSER_RESTING_HEIGHT + composerReserveExtra }}
         >
           {/* scrollbarGutter: "stable" on BOTH panes.
               R48_LAYOUT_REFLOW_01's original mechanism (the old shell's

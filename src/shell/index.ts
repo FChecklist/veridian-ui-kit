@@ -5,7 +5,12 @@ export { AppShell, LEFT_PANE_PERCENT } from "./AppShell";
 export type { AppShellProps } from "./AppShell";
 export { TopRail, ALL_PROJECTS_LABEL } from "./TopRail";
 export type { TopRailProps, TopRailProject } from "./TopRail";
-export { Composer, COMPOSER_RESTING_HEIGHT, COMPOSER_MAX_HEIGHT_VH } from "./Composer";
+export {
+  Composer,
+  COMPOSER_RESTING_HEIGHT,
+  COMPOSER_MAX_HEIGHT_VH,
+  COMPOSER_PILLS_BAND_RESERVE,
+} from "./Composer";
 export type { ComposerProps } from "./Composer";
 export { ControlStrip } from "./ControlStrip";
 export type { ControlStripProps } from "./ControlStrip";

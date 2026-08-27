@@ -55,6 +55,49 @@ export const COMPOSER_RESTING_HEIGHT = 112;
 /** The ceiling the box grows to. It sizes itself between the two. */
 export const COMPOSER_MAX_HEIGHT_VH = 62;
 
+/**
+ * F_019 fix (2026-08-27): COMPOSER_RESTING_HEIGHT above is documented as
+ * "control strip + one input line" -- it deliberately does NOT include band 3
+ * (PILLS), because PillStrip.tsx's own header comment says pills "arrive and
+ * leave with the composer" and that invariant is "enforced by the CALLER".
+ *
+ * PROJEXA's M24Shell.tsx does not honour that invariant -- it passes `pills`
+ * unconditionally on every render, on every route, never omitted, by its own
+ * deliberate design ("Without that affordance the remaining modules would be
+ * unreachable from here, which is a dead end, and M24 forbids dead ends").
+ * That is a legitimate product choice, but it means PROJEXA's composer is
+ * NEVER actually at the kit's assumed "two lines" resting height -- band 3 is
+ * always there too.
+ *
+ * AppShell reserves COMPOSER_RESTING_HEIGHT as static `paddingBottom` on the
+ * pane content box (see AppShell.tsx). When a caller's real resting height
+ * exceeds that reserve, the composer's own `pointer-events-auto` box (see the
+ * render below) silently overlaps whatever page content has scrolled to the
+ * pane's own bottom edge -- confirmed live on projexa-ai.com/reports,
+ * 2026-08-27: `document.elementFromPoint()` at the "Run" button's own center
+ * landed on the composer's wrapper DIV, not the button, and 2 consecutive
+ * real clicks on it produced zero `POST /api/reports/definitions/{id}/run`
+ * network requests. Same mechanism plausibly explains F_019's originally
+ * -recorded "inner Table/Pivot/Chart tablist unreachable" symptom (that
+ * tablist renders lower on the page, after a report result, same pane).
+ *
+ * This is a MINIMUM additive reserve for one PillStrip row rendered WITH its
+ * pin buttons (M24Shell passes `onTogglePin`, which doubles each chip to
+ * pill+pin, making a 2-line wrap likely at typical pane widths) plus band 3's
+ * own wrapper padding (`pb-1.5 pt-1` = 10px) in AppShell.tsx: exported so a
+ * consuming shell that (like PROJEXA) always renders `pills` can pass an
+ * accurate reserve to <AppShell composerReserveExtra=... /> instead of
+ * silently under-reserving. Deliberately a static, props-driven number, not a
+ * ResizeObserver measurement of the live composer box: measuring live height
+ * and feeding it straight back into the pane's padding would reflow the pane
+ * every time the composer grows for a genuinely dynamic reason (typing,
+ * conversation) -- the exact "control moves under the user's cursor" failure
+ * class R48_LAYOUT_REFLOW_01 was fixed to eliminate. A structural reserve
+ * that only changes when a caller's static band configuration changes (never,
+ * for PROJEXA -- pills is always on) carries none of that risk.
+ */
+export const COMPOSER_PILLS_BAND_RESERVE = 96;
+
 export type ComposerProps = {
   chain: Chain;
   onModeChange: (mode: ChainMode) => void;
